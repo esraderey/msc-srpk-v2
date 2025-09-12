@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSC SRPK v2.0 - Dashboard de Métricas</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.js"></script>
+    <script src="https://unpkg.com/chart.js@4.4.0/dist/chart.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0f1220;
+            --bg-secondary: #151935;
+            --bg-tertiary: #1f2447;
+            --text-primary: #e7e9ee;
+            --text-secondary: #a3abc2;
+            --accent: #7c5cff;
+            --accent-hover: #6b4ce6;
+            --success: #00d4aa;
+            --warning: #ffb020;
+            --error: #ff4757;
+            --border: #1f2447;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-item {
+            padding: 10px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .nav-item:hover {
+            background: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .nav-item.active {
+            background: var(--accent);
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .metric-trend {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 12px;
+        }
+
+        .trend-up {
+            color: var(--success);
+        }
+
+        .trend-down {
+            color: var(--error);
+        }
+
+        .trend-stable {
+            color: var(--text-secondary);
+        }
+
+        .chart-container {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-running {
+            background: rgba(0, 212, 170, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .status-warning {
+            background: rgba(255, 176, 32, 0.1);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .status-error {
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-primary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+            transition: width 0.3s ease;
+        }
+
+        .alert {
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-success {
+            background: rgba(0, 212, 170, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .alert-warning {
+            background: rgba(255, 176, 32, 0.1);
+            border: 1px solid var(--warning);
+            color: var(--warning);
+        }
+
+        .alert-error {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Componente de métrica individual
+        function MetricCard({ title, value, trend, icon, color = "accent" }) {
+            const getTrendIcon = () => {
+                if (trend === "increasing") return "fas fa-arrow-up trend-up";
+                if (trend === "decreasing") return "fas fa-arrow-down trend-down";
+                return "fas fa-minus trend-stable";
+            };
+
+            const getTrendText = () => {
+                if (trend === "increasing") return "Aumentando";
+                if (trend === "decreasing") return "Disminuyendo";
+                return "Estable";
+            };
+
+            return (
+                <div className="metric-card fade-in">
+                    <div className="metric-label">{title}</div>
+                    <div className="metric-value" style={{ color: `var(--${color})` }}>
+                        {value}
+                    </div>
+                    <div className="metric-trend">
+                        <i className={getTrendIcon()}></i>
+                        <span>{getTrendText()}</span>
+                    </div>
+                </div>
+            );
+        }
+
+        // Componente de gráfico
+        function MetricChart({ title, data, type = "line" }) {
+            const canvasRef = useRef(null);
+            const chartRef = useRef(null);
+
+            useEffect(() => {
+                if (!canvasRef.current || !data) return;
+
+                const ctx = canvasRef.current.getContext('2d');
+                
+                if (chartRef.current) {
+                    chartRef.current.destroy();
+                }
+
+                const chartData = {
+                    labels: data.map(d => new Date(d.timestamp).toLocaleTimeString()),
+                    datasets: [{
+                        label: title,
+                        data: data.map(d => d.value),
+                        borderColor: 'rgb(124, 92, 255)',
+                        backgroundColor: 'rgba(124, 92, 255, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                };
+
+                chartRef.current = new Chart(ctx, {
+                    type: type,
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#e7e9ee'
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    color: '#a3abc2'
+                                },
+                                grid: {
+                                    color: '#1f2447'
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    color: '#a3abc2'
+                                },
+                                grid: {
+                                    color: '#1f2447'
+                                }
+                            }
+                        }
+                    }
+                });
+
+                return () => {
+                    if (chartRef.current) {
+                        chartRef.current.destroy();
+                    }
+                };
+            }, [data, title, type]);
+
+            return (
+                <div className="chart-container">
+                    <div className="chart-title">{title}</div>
+                    <canvas ref={canvasRef} height="300"></canvas>
+                </div>
+            );
+        }
+
+        // Componente principal del dashboard
+        function MetricsDashboard() {
+            const [activeTab, setActiveTab] = useState('overview');
+            const [metrics, setMetrics] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+            const [autoRefresh, setAutoRefresh] = useState(true);
+
+            // Cargar métricas
+            const loadMetrics = async () => {
+                try {
+                    setLoading(true);
+                    const response = await axios.get('/api/metrics/overview');
+                    setMetrics(response.data);
+                    setError(null);
+                } catch (err) {
+                    setError('Error cargando métricas');
+                    console.error('Error:', err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            // Cargar métricas iniciales
+            useEffect(() => {
+                loadMetrics();
+            }, []);
+
+            // Auto-refresh
+            useEffect(() => {
+                if (!autoRefresh) return;
+
+                const interval = setInterval(loadMetrics, 30000); // Cada 30 segundos
+                return () => clearInterval(interval);
+            }, [autoRefresh]);
+
+            const renderOverview = () => {
+                if (!metrics) return <div>Cargando...</div>;
+
+                return (
+                    <div className="fade-in">
+                        <div className="metrics-grid">
+                            <MetricCard
+                                title="Complejidad Promedio"
+                                value={metrics.quality.complexity.current.toFixed(1)}
+                                trend={metrics.quality.complexity.trend}
+                                color="accent"
+                            />
+                            <MetricCard
+                                title="Índice de Mantenibilidad"
+                                value={metrics.quality.maintainability.current.toFixed(1)}
+                                trend={metrics.quality.maintainability.trend}
+                                color="success"
+                            />
+                            <MetricCard
+                                title="Problemas de Seguridad"
+                                value={metrics.quality.security.current}
+                                trend={metrics.quality.security.trend}
+                                color="error"
+                            />
+                            <MetricCard
+                                title="Tasa de Éxito de Tests"
+                                value={`${(metrics.testing.success_rate.current * 100).toFixed(1)}%`}
+                                trend={metrics.testing.success_rate.trend}
+                                color="success"
+                            />
+                        </div>
+
+                        <div className="chart-container">
+                            <div className="chart-title">Tendencias de Calidad</div>
+                            <MetricChart
+                                title="Complejidad vs Mantenibilidad"
+                                data={[
+                                    { timestamp: new Date(Date.now() - 3600000), value: metrics.quality.complexity.current },
+                                    { timestamp: new Date(Date.now() - 1800000), value: metrics.quality.complexity.current * 1.1 },
+                                    { timestamp: new Date(), value: metrics.quality.complexity.current }
+                                ]}
+                            />
+                        </div>
+                    </div>
+                );
+            };
+
+            const renderPerformance = () => {
+                if (!metrics) return <div>Cargando...</div>;
+
+                return (
+                    <div className="fade-in">
+                        <div className="metrics-grid">
+                            <MetricCard
+                                title="Tiempo de Análisis (s)"
+                                value={metrics.performance.analysis_time.current.toFixed(2)}
+                                trend={metrics.performance.analysis_time.trend}
+                                color="accent"
+                            />
+                            <MetricCard
+                                title="Tiempo de Embeddings (ms)"
+                                value={(metrics.performance.embedding_time.current * 1000).toFixed(0)}
+                                trend={metrics.performance.embedding_time.trend}
+                                color="warning"
+                            />
+                        </div>
+
+                        <div className="chart-container">
+                            <div className="chart-title">Rendimiento en el Tiempo</div>
+                            <MetricChart
+                                title="Tiempo de Análisis"
+                                data={[
+                                    { timestamp: new Date(Date.now() - 3600000), value: metrics.performance.analysis_time.current },
+                                    { timestamp: new Date(Date.now() - 1800000), value: metrics.performance.analysis_time.current * 0.8 },
+                                    { timestamp: new Date(), value: metrics.performance.analysis_time.current }
+                                ]}
+                            />
+                        </div>
+                    </div>
+                );
+            };
+
+            const renderUsage = () => {
+                if (!metrics) return <div>Cargando...</div>;
+
+                return (
+                    <div className="fade-in">
+                        <div className="metrics-grid">
+                            <MetricCard
+                                title="Comandos Ejecutados"
+                                value={metrics.usage.commands_executed.total}
+                                trend="stable"
+                                color="accent"
+                            />
+                            <MetricCard
+                                title="Tasa de Éxito"
+                                value={`${(metrics.usage.commands_executed.success_rate * 100).toFixed(1)}%`}
+                                trend="stable"
+                                color="success"
+                            />
+                            <MetricCard
+                                title="Validaciones de Licencia"
+                                value={metrics.usage.license_validations.total}
+                                trend="stable"
+                                color="warning"
+                            />
+                        </div>
+
+                        <div className="chart-container">
+                            <div className="chart-title">Uso de Comandos</div>
+                            <MetricChart
+                                title="Comandos por Hora"
+                                data={[
+                                    { timestamp: new Date(Date.now() - 3600000), value: 10 },
+                                    { timestamp: new Date(Date.now() - 1800000), value: 15 },
+                                    { timestamp: new Date(), value: 12 }
+                                ]}
+                                type="bar"
+                            />
+                        </div>
+                    </div>
+                );
+            };
+
+            const renderContent = () => {
+                switch (activeTab) {
+                    case 'overview':
+                        return renderOverview();
+                    case 'performance':
+                        return renderPerformance();
+                    case 'usage':
+                        return renderUsage();
+                    default:
+                        return renderOverview();
+                }
+            };
+
+            return (
+                <div className="container">
+                    <header className="header">
+                        <div className="logo">
+                            <i className="fas fa-chart-line"></i> MSC SRPK Dashboard
+                        </div>
+                        <nav className="nav">
+                            <a 
+                                className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('overview')}
+                            >
+                                <i className="fas fa-tachometer-alt"></i> Resumen
+                            </a>
+                            <a 
+                                className={`nav-item ${activeTab === 'performance' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('performance')}
+                            >
+                                <i className="fas fa-clock"></i> Rendimiento
+                            </a>
+                            <a 
+                                className={`nav-item ${activeTab === 'usage' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('usage')}
+                            >
+                                <i className="fas fa-users"></i> Uso
+                            </a>
+                        </nav>
+                    </header>
+
+                    <div className="card">
+                        <div className="card-header">
+                            <h2 className="card-title">Métricas en Tiempo Real</h2>
+                            <div className="status-indicator status-running">
+                                <i className="fas fa-circle"></i>
+                                Sistema Activo
+                            </div>
+                        </div>
+
+                        {loading && (
+                            <div className="alert alert-warning">
+                                <div className="loading"></div>
+                                Cargando métricas...
+                            </div>
+                        )}
+
+                        {error && (
+                            <div className="alert alert-error">
+                                <i className="fas fa-exclamation-triangle"></i>
+                                {error}
+                            </div>
+                        )}
+
+                        {!loading && !error && renderContent()}
+                    </div>
+                </div>
+            );
+        }
+
+        // Renderizar la aplicación
+        ReactDOM.render(<MetricsDashboard />, document.getElementById('root'));
+    </script>
+</body>
+</html>

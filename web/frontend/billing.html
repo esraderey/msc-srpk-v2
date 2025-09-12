@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSC SRPK v2.0 - Portal de Facturación</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0f1220;
+            --bg-secondary: #151935;
+            --bg-tertiary: #1f2447;
+            --text-primary: #e7e9ee;
+            --text-secondary: #a3abc2;
+            --accent: #7c5cff;
+            --accent-hover: #6b4ce6;
+            --success: #00d4aa;
+            --warning: #ffb020;
+            --error: #ff4757;
+            --border: #1f2447;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-item {
+            padding: 10px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .nav-item:hover {
+            background: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .nav-item.active {
+            background: var(--accent);
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-error {
+            background: var(--error);
+            color: white;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin: 24px 0;
+        }
+
+        .pricing-card {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .pricing-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+        }
+
+        .pricing-card.featured {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, rgba(124, 92, 255, 0.1) 100%);
+        }
+
+        .pricing-card.featured::before {
+            content: "Más Popular";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: white;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .plan-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .plan-price {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .plan-price-period {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .plan-description {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            min-height: 60px;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-bottom: 24px;
+        }
+
+        .plan-features li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .plan-features li i {
+            color: var(--success);
+            width: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.1);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: rgba(0, 212, 170, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .status-trial {
+            background: rgba(255, 176, 32, 0.1);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .status-expired {
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .alert {
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-success {
+            background: rgba(0, 212, 170, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .alert-warning {
+            background: rgba(255, 176, 32, 0.1);
+            border: 1px solid var(--warning);
+            color: var(--warning);
+        }
+
+        .alert-error {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+        }
+
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .invoice-table th,
+        .invoice-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .invoice-table th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .invoice-table td {
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Componente de tarjeta de precios
+        function PricingCard({ plan, isFeatured, onSelect }) {
+            return (
+                <div className={`pricing-card ${isFeatured ? 'featured' : ''}`}>
+                    <div className="plan-name">{plan.name}</div>
+                    <div className="plan-price">
+                        ${plan.price}
+                        <span className="plan-price-period">/mes</span>
+                    </div>
+                    <div className="plan-description">{plan.description}</div>
+                    <ul className="plan-features">
+                        {plan.features.map((feature, index) => (
+                            <li key={index}>
+                                <i className="fas fa-check"></i>
+                                {feature}
+                            </li>
+                        ))}
+                    </ul>
+                    <button 
+                        className="btn btn-primary" 
+                        onClick={() => onSelect(plan)}
+                        style={{ width: '100%' }}
+                    >
+                        {plan.plan_id === 'trial' ? 'Comenzar Prueba' : 'Seleccionar Plan'}
+                    </button>
+                </div>
+            );
+        }
+
+        // Componente principal del portal de facturación
+        function BillingPortal() {
+            const [activeTab, setActiveTab] = useState('plans');
+            const [plans, setPlans] = useState([]);
+            const [currentSubscription, setCurrentSubscription] = useState(null);
+            const [invoices, setInvoices] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+            const [selectedPlan, setSelectedPlan] = useState(null);
+            const [customerInfo, setCustomerInfo] = useState({
+                name: '',
+                email: '',
+                company: '',
+                phone: ''
+            });
+
+            // Cargar datos iniciales
+            useEffect(() => {
+                loadData();
+            }, []);
+
+            const loadData = async () => {
+                try {
+                    setLoading(true);
+                    
+                    // Cargar planes
+                    const plansResponse = await axios.get('/api/billing/plans');
+                    setPlans(plansResponse.data);
+                    
+                    // Cargar suscripción actual
+                    const subscriptionResponse = await axios.get('/api/billing/subscription');
+                    setCurrentSubscription(subscriptionResponse.data);
+                    
+                    // Cargar facturas
+                    const invoicesResponse = await axios.get('/api/billing/invoices');
+                    setInvoices(invoicesResponse.data);
+                    
+                } catch (err) {
+                    setError('Error cargando datos');
+                    console.error('Error:', err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handlePlanSelect = (plan) => {
+                setSelectedPlan(plan);
+                setActiveTab('checkout');
+            };
+
+            const handleSubscribe = async () => {
+                try {
+                    setLoading(true);
+                    
+                    const response = await axios.post('/api/billing/subscribe', {
+                        plan_id: selectedPlan.plan_id,
+                        customer_info: customerInfo
+                    });
+                    
+                    if (response.data.success) {
+                        alert('Suscripción creada exitosamente');
+                        loadData();
+                        setActiveTab('subscription');
+                    } else {
+                        setError(response.data.error);
+                    }
+                } catch (err) {
+                    setError('Error creando suscripción');
+                    console.error('Error:', err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleCancelSubscription = async () => {
+                if (!confirm('¿Estás seguro de que quieres cancelar tu suscripción?')) {
+                    return;
+                }
+                
+                try {
+                    setLoading(true);
+                    
+                    const response = await axios.post('/api/billing/cancel');
+                    
+                    if (response.data.success) {
+                        alert('Suscripción cancelada');
+                        loadData();
+                    } else {
+                        setError(response.data.error);
+                    }
+                } catch (err) {
+                    setError('Error cancelando suscripción');
+                    console.error('Error:', err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const renderPlans = () => (
+                <div className="fade-in">
+                    <div className="card">
+                        <div className="card-header">
+                            <h2 className="card-title">Planes de Suscripción</h2>
+                        </div>
+                        
+                        <div className="pricing-grid">
+                            {plans.map((plan, index) => (
+                                <PricingCard
+                                    key={plan.plan_id}
+                                    plan={plan}
+                                    isFeatured={index === 1} // Startup es el más popular
+                                    onSelect={handlePlanSelect}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderCheckout = () => (
+                <div className="fade-in">
+                    <div className="card">
+                        <div className="card-header">
+                            <h2 className="card-title">Finalizar Compra</h2>
+                        </div>
+                        
+                        {selectedPlan && (
+                            <div style={{ marginBottom: '24px', padding: '16px', background: 'var(--bg-tertiary)', borderRadius: '8px' }}>
+                                <h3>{selectedPlan.name}</h3>
+                                <p>${selectedPlan.price}/mes</p>
+                                <p>{selectedPlan.description}</p>
+                            </div>
+                        )}
+                        
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label className="form-label">Nombre Completo</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={customerInfo.name}
+                                    onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Email</label>
+                                <input
+                                    type="email"
+                                    className="form-input"
+                                    value={customerInfo.email}
+                                    onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
+                                    required
+                                />
+                            </div>
+                        </div>
+                        
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label className="form-label">Empresa</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={customerInfo.company}
+                                    onChange={(e) => setCustomerInfo({...customerInfo, company: e.target.value})}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Teléfono</label>
+                                <input
+                                    type="tel"
+                                    className="form-input"
+                                    value={customerInfo.phone}
+                                    onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
+                                />
+                            </div>
+                        </div>
+                        
+                        <button 
+                            className="btn btn-primary" 
+                            onClick={handleSubscribe}
+                            disabled={loading}
+                        >
+                            {loading ? <div className="loading"></div> : <i className="fas fa-credit-card"></i>}
+                            {selectedPlan?.plan_id === 'trial' ? 'Comenzar Prueba' : 'Suscribirse'}
+                        </button>
+                    </div>
+                </div>
+            );
+
+            const renderSubscription = () => {
+                if (!currentSubscription) {
+                    return (
+                        <div className="fade-in">
+                            <div className="card">
+                                <div className="alert alert-warning">
+                                    <i className="fas fa-exclamation-triangle"></i>
+                                    No tienes una suscripción activa
+                                </div>
+                                <button 
+                                    className="btn btn-primary"
+                                    onClick={() => setActiveTab('plans')}
+                                >
+                                    Ver Planes
+                                </button>
+                            </div>
+                        </div>
+                    );
+                }
+
+                return (
+                    <div className="fade-in">
+                        <div className="card">
+                            <div className="card-header">
+                                <h2 className="card-title">Mi Suscripción</h2>
+                                <div className={`status-indicator status-${currentSubscription.status}`}>
+                                    <i className="fas fa-circle"></i>
+                                    {currentSubscription.status === 'active' ? 'Activa' : 
+                                     currentSubscription.status === 'trial' ? 'Prueba' : 'Inactiva'}
+                                </div>
+                            </div>
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+                                <div>
+                                    <h4>Plan Actual</h4>
+                                    <p style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--accent)' }}>
+                                        {currentSubscription.plan?.name}
+                                    </p>
+                                    <p>${currentSubscription.plan?.price}/mes</p>
+                                </div>
+                                <div>
+                                    <h4>Próxima Facturación</h4>
+                                    <p>{new Date(currentSubscription.end_date).toLocaleDateString()}</p>
+                                    <p>Auto-renovación: {currentSubscription.auto_renew ? 'Sí' : 'No'}</p>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4>Uso Actual</h4>
+                                <p>Entornos Productivos: {currentSubscription.usage?.prod_environments || 0} / {currentSubscription.plan?.max_prod_environments}</p>
+                                <p>Entornos No-Productivos: {currentSubscription.usage?.nonprod_environments || 0} / {currentSubscription.plan?.max_nonprod_environments}</p>
+                            </div>
+                            
+                            <div style={{ marginTop: '24px' }}>
+                                <button 
+                                    className="btn btn-error"
+                                    onClick={handleCancelSubscription}
+                                >
+                                    <i className="fas fa-times"></i>
+                                    Cancelar Suscripción
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            const renderInvoices = () => (
+                <div className="fade-in">
+                    <div className="card">
+                        <div className="card-header">
+                            <h2 className="card-title">Historial de Facturas</h2>
+                        </div>
+                        
+                        <table className="invoice-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Fecha</th>
+                                    <th>Monto</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {invoices.map((invoice) => (
+                                    <tr key={invoice.invoice_id}>
+                                        <td>{invoice.invoice_id.substring(0, 8)}...</td>
+                                        <td>{new Date(invoice.created_at).toLocaleDateString()}</td>
+                                        <td>${invoice.amount}</td>
+                                        <td>
+                                            <span className={`status-indicator status-${invoice.status}`}>
+                                                {invoice.status === 'completed' ? 'Pagada' : 
+                                                 invoice.status === 'pending' ? 'Pendiente' : 'Cancelada'}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button className="btn btn-secondary" style={{ padding: '8px 12px' }}>
+                                                <i className="fas fa-download"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+
+            const renderContent = () => {
+                switch (activeTab) {
+                    case 'plans':
+                        return renderPlans();
+                    case 'checkout':
+                        return renderCheckout();
+                    case 'subscription':
+                        return renderSubscription();
+                    case 'invoices':
+                        return renderInvoices();
+                    default:
+                        return renderPlans();
+                }
+            };
+
+            return (
+                <div className="container">
+                    <header className="header">
+                        <div className="logo">
+                            <i className="fas fa-credit-card"></i> Portal de Facturación
+                        </div>
+                        <nav className="nav">
+                            <a 
+                                className={`nav-item ${activeTab === 'plans' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('plans')}
+                            >
+                                <i className="fas fa-list"></i> Planes
+                            </a>
+                            <a 
+                                className={`nav-item ${activeTab === 'subscription' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('subscription')}
+                            >
+                                <i className="fas fa-user"></i> Mi Suscripción
+                            </a>
+                            <a 
+                                className={`nav-item ${activeTab === 'invoices' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('invoices')}
+                            >
+                                <i className="fas fa-file-invoice"></i> Facturas
+                            </a>
+                        </nav>
+                    </header>
+
+                    {loading && (
+                        <div className="alert alert-warning">
+                            <div className="loading"></div>
+                            Cargando...
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="alert alert-error">
+                            <i className="fas fa-exclamation-triangle"></i>
+                            {error}
+                        </div>
+                    )}
+
+                    {!loading && !error && renderContent()}
+                </div>
+            );
+        }
+
+        // Renderizar la aplicación
+        ReactDOM.render(<BillingPortal />, document.getElementById('root'));
+    </script>
+</body>
+</html>
