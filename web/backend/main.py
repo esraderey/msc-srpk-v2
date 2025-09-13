@@ -15,11 +15,19 @@ import logging
 import os
 import tempfile
 import zipfile
+import sqlite3
 from pathlib import Path
 import sys
+from datetime import datetime
 
 # Agregar el directorio padre al path para importar msc_srpk
 sys.path.append(str(Path(__file__).parent.parent.parent))
+
+# Configuración de rutas
+BASE_DIR = Path(__file__).parent.parent.parent
+COMMERCIAL_LANDING_PATH = BASE_DIR / "commercial" / "landing" / "index.html"
+WEB_FRONTEND_PATH = BASE_DIR / "web" / "frontend"
+STATIC_DIR = BASE_DIR / "web" / "frontend" / "static"
 
 from msc_srpk.srpk_v2 import EnhancedSRPKManager
 from msc_srpk.licensing import initialize_license, get_license_info, LicenseError, license_manager
@@ -116,14 +124,47 @@ def validate_license(license_key: str) -> bool:
     try:
         return initialize_license(license_key)
     except Exception as e:
-        logger.error(f"Error validando licencia: {e}")
+        logger.warning(f"Error validando licencia: {e}")
         return False
 
 # Rutas de la API
 @app.get("/")
 async def root():
-    """Página principal."""
-    return HTMLResponse(open("web/frontend/index.html").read())
+    """Página principal - Sirve la landing page comercial."""
+    try:
+        if COMMERCIAL_LANDING_PATH.exists():
+            with open(COMMERCIAL_LANDING_PATH, "r", encoding="utf-8") as f:
+                content = f.read()
+            return HTMLResponse(content=content)
+        else:
+            # Fallback a landing page básica
+            return HTMLResponse(content="""
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>MSC SRPK v2.0</title>
+                <style>
+                    body { font-family: -apple-system, sans-serif; text-align: center; padding: 50px; }
+                    .container { max-width: 600px; margin: 0 auto; }
+                    h1 { color: #667eea; }
+                    .btn { background: #667eea; color: white; padding: 12px 24px; border: none; border-radius: 6px; text-decoration: none; display: inline-block; margin: 10px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>MSC SRPK v2.0</h1>
+                    <p>Análisis de Código con IA</p>
+                    <a href="/dashboard" class="btn">Dashboard</a>
+                    <a href="/docs" class="btn">API Docs</a>
+                </div>
+            </body>
+            </html>
+            """)
+    except Exception as e:
+        logger.error(f"Error sirviendo landing page: {e}")
+        raise HTTPException(status_code=500, detail="Error cargando página principal")
 
 @app.post("/api/license/validate")
 async def validate_license_endpoint(request: LicenseRequest):
@@ -297,15 +338,25 @@ async def upload_project(file: UploadFile = File(...)):
 @app.get("/api/status")
 async def get_status():
     """Obtiene estado del sistema."""
-    manager = get_srpk_manager()
-    metrics = manager.srpk.global_metrics
-    
-    return {
-        "status": "running",
-        "version": "2.0.0",
-        "metrics": metrics,
-        "active_connections": len(manager.active_connections)
-    }
+    try:
+        manager = get_srpk_manager()
+        metrics = getattr(manager.srpk, 'global_metrics', {})
+        
+        return {
+            "status": "running",
+            "version": "2.0.0",
+            "metrics": metrics,
+            "active_connections": len(manager.active_connections) if hasattr(manager, 'active_connections') else 0
+        }
+    except Exception as e:
+        logger.error(f"Error getting status: {e}")
+        return {
+            "status": "running",
+            "version": "2.0.0",
+            "metrics": {},
+            "active_connections": 0,
+            "error": str(e)
+        }
 
 @app.get("/api/metrics/overview")
 async def get_metrics_overview():
@@ -613,8 +664,61 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.error(f"Error en WebSocket: {e}")
         manager.disconnect(websocket)
 
-# Servir archivos estáticos
-app.mount("/static", StaticFiles(directory="web/frontend/static"), name="static")
+# Servir archivos estáticos y páginas frontend
+try:
+    # Crear directorio static si no existe
+    if not STATIC_DIR.exists():
+        STATIC_DIR.mkdir(parents=True, exist_ok=True)
+    
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+except Exception as e:
+    logger.warning(f"No se pudo montar directorio static: {e}")
+
+# Endpoints para páginas del frontend
+@app.get("/dashboard")
+async def dashboard():
+    """Dashboard de la aplicación."""
+    try:
+        dashboard_path = WEB_FRONTEND_PATH / "dashboard.html"
+        if dashboard_path.exists():
+            with open(dashboard_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            return HTMLResponse(content=content)
+        else:
+            raise HTTPException(status_code=404, detail="Dashboard no encontrado")
+    except Exception as e:
+        logger.error(f"Error sirviendo dashboard: {e}")
+        raise HTTPException(status_code=500, detail="Error cargando dashboard")
+
+@app.get("/monitoring")
+async def monitoring_page():
+    """Página de monitoreo."""
+    try:
+        monitoring_path = WEB_FRONTEND_PATH / "monitoring.html"
+        if monitoring_path.exists():
+            with open(monitoring_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            return HTMLResponse(content=content)
+        else:
+            raise HTTPException(status_code=404, detail="Página de monitoreo no encontrada")
+    except Exception as e:
+        logger.error(f"Error sirviendo página de monitoreo: {e}")
+        raise HTTPException(status_code=500, detail="Error cargando página de monitoreo")
+
+@app.get("/billing")
+async def billing_page():
+    """Página de facturación."""
+    try:
+        billing_path = WEB_FRONTEND_PATH / "billing.html"
+        if billing_path.exists():
+            with open(billing_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            return HTMLResponse(content=content)
+        else:
+            raise HTTPException(status_code=404, detail="Página de facturación no encontrada")
+    except Exception as e:
+        logger.error(f"Error sirviendo página de facturación: {e}")
+        raise HTTPException(status_code=500, detail="Error cargando página de facturación")
 
 # Endpoints de Monitoreo
 @app.get("/api/monitoring/health")
@@ -726,27 +830,30 @@ async def startup_event():
     """Inicializa sistemas al arrancar la aplicación."""
     try:
         # Inicializar sistema de monitoreo
-        initialize_monitoring(port=8001)
-        logger.info("Sistema de monitoreo inicializado")
+        try:
+            initialize_monitoring(port=8001)
+            logger.info("Sistema de monitoreo inicializado")
+        except Exception as e:
+            logger.warning(f"No se pudo inicializar monitoreo: {e}")
         
         # Inicializar sistema de métricas si está disponible
         try:
             from msc_srpk.metrics import initialize_metrics
             initialize_metrics()
             logger.info("Sistema de métricas inicializado")
-        except ImportError:
-            logger.warning("Sistema de métricas no disponible")
+        except (ImportError, Exception) as e:
+            logger.warning(f"Sistema de métricas no disponible: {e}")
         
         # Inicializar sistema de billing si está disponible
         try:
             from msc_srpk.billing import initialize_billing
             initialize_billing()
             logger.info("Sistema de billing inicializado")
-        except ImportError:
-            logger.warning("Sistema de billing no disponible")
+        except (ImportError, Exception) as e:
+            logger.warning(f"Sistema de billing no disponible: {e}")
             
     except Exception as e:
-        logger.error(f"Error inicializando sistemas: {e}")
+        logger.warning(f"Algunos sistemas no se pudieron inicializar: {e}")
 
 if __name__ == "__main__":
     import uvicorn

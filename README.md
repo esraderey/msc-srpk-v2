@@ -28,6 +28,28 @@ cd msc-srpk
 pip install -e .
 ```
 
+## 🌐 Despliegue de Landing Page
+
+Para desplegar la landing page y la interfaz web:
+
+```bash
+# Instalar dependencias web
+pip install -r requirements.txt -r web/requirements.txt
+
+# Desplegar con script automático
+./deploy_landing.sh
+
+# O manualmente
+cd web/backend
+python main.py
+```
+
+La landing page estará disponible en:
+- **Landing Page:** http://localhost:8000
+- **Dashboard:** http://localhost:8000/dashboard
+- **API Docs:** http://localhost:8000/docs
+- **Monitoreo:** http://localhost:8000/monitoring
+
 ## 🚀 Uso Básico
 
 ### Análisis de Proyecto
