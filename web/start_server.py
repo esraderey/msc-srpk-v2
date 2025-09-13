@@ -24,6 +24,7 @@ def main():
     
     if not backend_dir.exists():
         print("❌ Error: Directorio backend no encontrado")
+        print(f"   Buscando en: {backend_dir}")
         sys.exit(1)
     
     # Cambiar al directorio del backend
@@ -42,9 +43,11 @@ def main():
     print(f"   Host: {args.host}")
     print(f"   Puerto: {args.port}")
     print(f"   Recarga automática: {'Sí' if args.reload else 'No'}")
+    print(f"   Directorio de trabajo: {os.getcwd()}")
     print()
     print("📱 Accede a: http://localhost:8000")
     print("📚 API Docs: http://localhost:8000/docs")
+    print("📊 Dashboard: http://localhost:8000/dashboard")
     print()
     
     # Iniciar servidor
