@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /docs
+Disallow: /dashboard
+Disallow: /monitoring
+Disallow: /billing
+
+Sitemap: https://mscsrpk.com/sitemap.xml

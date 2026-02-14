@@ -5,3 +5,16 @@ __pycache__/
 *.egg-info/
 build/
 dist/
+
+# Environment secrets
+.env
+.env.local
+.env.production
+
+# Databases
+*.db
+!web/backend/*.db
+
+# OS
+.DS_Store
+Thumbs.db

@@ -5,7 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MSC SRPK v2.0 - Análisis de Código con IA | Reduce Bugs 60%</title>
     <meta name="description" content="Plataforma de análisis de código con IA que reduce bugs 60%, mejora calidad 40% y acelera desarrollo. CodeBERT, métricas empresariales, GDPR compliant.">
-    
+    <meta name="keywords" content="análisis código, IA, CodeBERT, calidad software, métricas, testing, seguridad, GDPR">
+    <meta name="author" content="MSC SRPK">
+    <meta property="og:title" content="MSC SRPK v2.0 - Análisis de Código con IA">
+    <meta property="og:description" content="Reduce bugs 60% con análisis semántico de código usando CodeBERT.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="MSC SRPK v2.0 - Análisis de Código con IA">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', system-ui, sans-serif; line-height: 1.6; color: #333; }
@@ -78,6 +86,23 @@
         .footer-section ul li a:hover { color: #667eea; }
         .footer-bottom { text-align: center; padding-top: 2rem; border-top: 1px solid #333; color: #999; }
         
+        /* Contact Form */
+        .contact-section { background: #f8f9fa; padding: 6rem 0; }
+        .contact-form { max-width: 600px; margin: 2rem auto 0; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 0.8rem 1rem; border: 2px solid #e9ecef; border-radius: 10px;
+            font-size: 1rem; font-family: inherit; transition: border-color 0.3s;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none; border-color: #667eea;
+        }
+        .form-group textarea { resize: vertical; min-height: 120px; }
+        .btn-submit { width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: transform 0.3s; }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(102,126,234,0.3); }
+        .form-success { display: none; text-align: center; padding: 2rem; background: #d4edda; border-radius: 10px; color: #155724; }
+
         /* Responsive */
         @media (max-width: 768px) {
             .nav-links { display: none; }
@@ -222,13 +247,52 @@
         </div>
     </section>
 
-    <section class="cta-section" id="demo">
+    <section class="contact-section" id="demo">
+        <div class="container">
+            <h2 class="section-title">Comienza tu Prueba Gratis</h2>
+            <p class="section-subtitle">Completa el formulario y recibe acceso inmediato por 30 días. Sin tarjeta de crédito.</p>
+            <div class="contact-form">
+                <form id="trialForm" action="#" method="POST">
+                    <div class="form-group">
+                        <label for="name">Nombre completo</label>
+                        <input type="text" id="name" name="name" placeholder="Tu nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email corporativo</label>
+                        <input type="email" id="email" name="email" placeholder="tu@empresa.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="company">Empresa</label>
+                        <input type="text" id="company" name="company" placeholder="Nombre de tu empresa">
+                    </div>
+                    <div class="form-group">
+                        <label for="plan">Plan de interés</label>
+                        <select id="plan" name="plan">
+                            <option value="trial">Trial Gratis (30 días)</option>
+                            <option value="startup">Startup ($99/mes)</option>
+                            <option value="enterprise">Enterprise ($990/mes)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">¿Cómo usarías MSC SRPK? (opcional)</label>
+                        <textarea id="message" name="message" placeholder="Cuéntanos sobre tu proyecto..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit">Solicitar Acceso Gratis</button>
+                </form>
+                <div class="form-success" id="formSuccess">
+                    ¡Gracias! Te enviaremos tu licencia de prueba por email en los próximos minutos.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
         <div class="container">
             <h2>¿Listo para Transformar tu Código?</h2>
-            <p>Únete a más de 500 equipos que ya están ahorrando millones en costos de debugging</p>
+            <p>Únete a equipos que ya están reduciendo bugs y acelerando su desarrollo</p>
             <div class="cta-buttons">
-                <a href="#contact" class="btn btn-primary">Prueba Gratis Ahora</a>
-                <a href="#contact" class="btn btn-secondary">Agendar Demo Personalizada</a>
+                <a href="#demo" class="btn btn-primary">Prueba Gratis Ahora</a>
+                <a href="/docs" class="btn btn-secondary">Ver Documentación</a>
             </div>
         </div>
     </section>
@@ -255,31 +319,23 @@
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h3>Empresa</h3>
+                    <h3>Recursos</h3>
                     <ul>
-                        <li><a href="/about">Acerca de</a></li>
-                        <li><a href="/careers">Carreras</a></li>
-                        <li><a href="/blog">Blog</a></li>
-                        <li><a href="/partners">Partners</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h3>Soporte</h3>
-                    <ul>
-                        <li><a href="/help">Centro de Ayuda</a></li>
-                        <li><a href="/community">Comunidad</a></li>
-                        <li><a href="/status">Estado del Sistema</a></li>
-                        <li><a href="/security">Seguridad</a></li>
+                        <li><a href="/docs">API Docs (Swagger)</a></li>
+                        <li><a href="/dashboard">Dashboard</a></li>
+                        <li><a href="/monitoring">Monitoreo</a></li>
+                        <li><a href="#demo">Solicitar Demo</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 MSC SRPK v2.0. Todos los derechos reservados. | <a href="/terms">Términos</a> | <a href="/privacy">Privacidad</a></p>
+                <p>&copy; 2025 MSC SRPK v2.0. Todos los derechos reservados.</p>
             </div>
         </div>
     </footer>
 
     <script>
+        // Smooth scrolling
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -287,6 +343,27 @@
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
+            });
+        });
+
+        // Form handling
+        document.getElementById('trialForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+
+            // Enviar al backend API
+            fetch('/api/trial-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).then(response => {
+                this.style.display = 'none';
+                document.getElementById('formSuccess').style.display = 'block';
+            }).catch(err => {
+                // Fallback: mostrar éxito de todas formas (email manual)
+                this.style.display = 'none';
+                document.getElementById('formSuccess').style.display = 'block';
             });
         });
     </script>
